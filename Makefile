@@ -35,3 +35,19 @@ verifiers: staticcheck
 staticcheck:
 	@echo "Running $@ check"
 	@GO111MODULE=on ${GOPATH}/bin/staticcheck ./...
+
+# runs the 
+.PHONY: run-swarm
+run-swarm:
+	docker run --name temporal_swarm -d -it -v ${PWD}/swarmtest/datadir:/data \
+					-v ${PWD}/swarmtest/passwordfile:/password \
+					-p 8500:8500 \
+					ethersphere/swarm \
+								--datadir /data \
+								--password /password \
+								--debug \
+								--verbosity 4
+
+.PHONY: stop-swarm
+stop-swarm:
+	docker stop temporal_swarm && docker rm temporal_swarm

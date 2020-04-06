@@ -36,10 +36,20 @@ func (a APICall) ParseArgs(args ...interface{}) string {
 	switch a {
 	case SingleFileUpload:
 		return a.String()
-	case SingleFileDownload:
+	case SingleFileDownload, ListFiles:
 		return fmt.Sprintf(a.String(), args...)
 	default:
 		return ""
+	}
+}
+
+// Response returns the object associated with the api calls response
+func (a APICall) Response() interface{} {
+	switch a {
+	case ListFiles:
+		return &BZZList{}
+	default:
+		return nil
 	}
 }
 
@@ -48,9 +58,11 @@ const (
 	SingleFileUpload = APICall("/bzz:/")
 	// SingleFileDownload is used to download a singular file from swarm
 	SingleFileDownload = APICall("/bzz:/%s/")
+	// ListFiles is used to list files in a particular manifest
+	ListFiles = APICall("/bzz-list:/%s/")
 )
 
 var (
 	// APICalls is just a helper slice containing all known API calls
-	APICalls = []APICall{SingleFileUpload}
+	APICalls = []APICall{SingleFileUpload, SingleFileDownload, ListFiles}
 )

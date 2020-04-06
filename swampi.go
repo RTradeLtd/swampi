@@ -21,17 +21,21 @@ func New(endpoint string) *Swampi {
 }
 
 // Do executes the given http request
-func (s *Swampi) Do(req *http.Request) (*http.Response, error) {
-	return s.c.Do(req)
+func (s *Swampi) Do(call APICall, req *http.Request) (*Response, error) {
+	resp, err := s.c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	return &Response{call, resp}, nil
 }
 
 // Send is a wrapper around constructCall + Do
-func (s *Swampi) Send(call APICall, body io.Reader, headers map[string][]string, args ...interface{}) (*http.Response, error) {
+func (s *Swampi) Send(call APICall, body io.Reader, headers map[string][]string, args ...interface{}) (*Response, error) {
 	req, err := s.constructCall(call, body, headers, s.endpoint+call.ParseArgs(args...))
 	if err != nil {
 		return nil, err
 	}
-	return s.Do(req)
+	return s.Do(call, req)
 }
 
 func (s *Swampi) constructCall(call APICall, body io.Reader, headers map[string][]string, url string) (*http.Request, error) {

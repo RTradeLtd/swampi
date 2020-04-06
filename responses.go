@@ -2,6 +2,7 @@ package swampi
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"time"
 
@@ -36,6 +37,11 @@ func (r *Response) SwarmUnmarshal() (interface{}, error) {
 		return nil, err
 	}
 	out := r.call.Response()
+	// if out is nil this indicates the response from the call is a simple, single value
+	// for example the upload call returns just the hash, and theres no need to complicate it
+	if out == nil {
+		return nil, errors.New("api call has no specific response associated with it")
+	}
 	if err := json.Unmarshal(data, out); err != nil {
 		return nil, err
 	}

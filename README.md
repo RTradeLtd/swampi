@@ -1,6 +1,6 @@
 #  swampi
 
-`swampi` is a golang client for the swarm http api, and enables programmatic access to the swarm API via your golang programs. It's primary purpose is for use with Temporal, but other users may find it useful.
+`swampi` is a golang client for the swarm http api, and enables programmatic access to the swarm API via your golang programs. It's primary purpose is for use with Temporal, but other users may find it useful. 
 
 # format
 

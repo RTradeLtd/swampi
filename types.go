@@ -14,6 +14,7 @@ func (a APICall) String() string {
 // Method returns the http method associated with the call
 func (a APICall) Method() string {
 	switch a {
+	// this case also matches TarStreamUpload
 	case SingleFileUpload:
 		return "POST"
 	default:
@@ -22,9 +23,14 @@ func (a APICall) Method() string {
 }
 
 // ContentType returns the content type associated with this request
-func (a APICall) ContentType() string {
+func (a APICall) ContentType(isTar bool) string {
 	switch a {
 	case SingleFileUpload:
+		// can't have multiple cases of the same string content
+		// so we need to short circuit specific uploads with manual checks
+		if isTar {
+			return "application/x-tar"
+		}
 		return "text/plain"
 	default:
 		return ""
@@ -60,9 +66,11 @@ const (
 	SingleFileDownload = APICall("/bzz:/%s/")
 	// ListFiles is used to list files in a particular manifest
 	ListFiles = APICall("/bzz-list:/%s/")
+	// TarStreamUpload is used to upload tar files
+	TarStreamUpload = APICall("/bzz:/")
 )
 
 var (
 	// APICalls is just a helper slice containing all known API calls
-	APICalls = []APICall{SingleFileUpload, SingleFileDownload, ListFiles}
+	APICalls = []APICall{SingleFileUpload, SingleFileDownload, TarStreamUpload, ListFiles}
 )

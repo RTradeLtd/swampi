@@ -30,7 +30,7 @@ func TestSingleFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			resp, err := swampi.Send(SingleFileUpload, bytes.NewReader(fileBytes), map[string][]string{
-				"content-type": []string{SingleFileUpload.ContentType()},
+				"content-type": []string{SingleFileUpload.ContentType(false)},
 			})
 			if err != nil {
 				t.Fatal(err)
@@ -39,12 +39,13 @@ func TestSingleFile(t *testing.T) {
 				t.Fatal("bad call")
 			}
 			defer resp.Body.Close()
-			if resp.StatusCode != http.StatusOK {
-				t.Fatalf("bad status code, got %v, want %v", resp.StatusCode, http.StatusOK)
-			}
 			contents, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				t.Fatal(err)
+			}
+			if resp.StatusCode != http.StatusOK {
+				fmt.Println(string(contents))
+				t.Fatalf("bad status code, got %v, want %v", resp.StatusCode, http.StatusOK)
 			}
 			if string(contents) != tt.wantHash {
 				fmt.Println(string(contents))
@@ -71,7 +72,7 @@ func TestSingleFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			resp, err = swampi.Send(SingleFileUpload, bytes.NewReader(data), map[string][]string{
-				"content-type": []string{SingleFileUpload.ContentType()},
+				"content-type": []string{SingleFileUpload.ContentType(false)},
 			})
 			if err != nil {
 				t.Fatal(err)
@@ -90,21 +91,74 @@ func TestSingleFile(t *testing.T) {
 	}
 }
 
+func TestTarUpload(t *testing.T) {
+	swampi := New("http://localhost:8500")
+	type args struct {
+		filePath string
+	}
+	tests := []struct {
+		name     string
+		args     args
+		wantErr  bool
+		wantHash string
+	}{
+		{"1", args{"./test_data/dir.tar"}, false, "b187c6f48d4acbdfd9b6d44fbc4081e0c4f4bca6415e6490ff9e40a9fed1d121"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			fh, err := os.Open(tt.args.filePath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resp, err := swampi.Send(TarStreamUpload, fh, map[string][]string{
+				"content-type": []string{TarStreamUpload.ContentType(true)},
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode != http.StatusOK {
+				t.Fatal("bad status code")
+			}
+			data, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(data) != tt.wantHash {
+				t.Fatal("bad hash returned")
+			}
+		})
+	}
+}
+
 func TestBZZList(t *testing.T) {
 	swampi := New("http://localhost:8500")
 	type args struct {
-		hash string
+		hash, contentType string
 	}
 	tests := []struct {
 		name     string
 		args     args
 		wantHash string
 	}{
-		{"Readme", args{"b4dd34b82fc6d9518b73676430221595f72e6c1c105adff19e1f23e7468b8565"}, "49c5b6e9dd8531a05a7a1c6f91f261c2214bc93d9f1c157fe2dc68c8006c8b63"},
+		{"Readme", args{
+			"b4dd34b82fc6d9518b73676430221595f72e6c1c105adff19e1f23e7468b8565",
+			"",
+		}, "49c5b6e9dd8531a05a7a1c6f91f261c2214bc93d9f1c157fe2dc68c8006c8b63"},
+		/*{"Tar", args{
+			"b187c6f48d4acbdfd9b6d44fbc4081e0c4f4bca6415e6490ff9e40a9fed1d121",
+			"application/x-tar",
+		}, ""},*/
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resp, err := swampi.Send(ListFiles, nil, nil, tt.args.hash)
+			var headers map[string][]string
+			if tt.args.contentType != "" {
+				headers = map[string][]string{
+					"content-type": []string{tt.args.contentType},
+				}
+			}
+			resp, err := swampi.Send(ListFiles, nil, headers, tt.args.hash)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -119,13 +173,13 @@ func TestBZZList(t *testing.T) {
 			if !ok {
 				t.Fatal("failed to properly unmarshal")
 			}
+			fmt.Printf("%+v\n", bzzList)
 			if len(bzzList.Entries) == 0 {
 				t.Fatal("bad number of entries")
 			}
 			if bzzList.Entries[0].Hash != tt.wantHash {
 				t.Fatal("bad hash returned")
 			}
-			fmt.Printf("%+v\n", bzzList)
 		})
 	}
 }

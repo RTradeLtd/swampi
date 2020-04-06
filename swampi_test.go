@@ -70,7 +70,7 @@ func TestSingleFile(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			resp, err = swampi.Send(SingleFileUpload, bytes.NewReader(fileBytes), map[string][]string{
+			resp, err = swampi.Send(SingleFileUpload, bytes.NewReader(data), map[string][]string{
 				"content-type": []string{SingleFileUpload.ContentType()},
 			})
 			if err != nil {

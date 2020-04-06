@@ -20,7 +20,7 @@ func TestSingleFile(t *testing.T) {
 		wantErr  bool
 		wantHash string
 	}{
-		{"Text File", args{"README.md"}, false, "b4dd34b82fc6d9518b73676430221595f72e6c1c105adff19e1f23e7468b8565"},
+		{"Text File", args{"./test_data/README.md"}, false, "b4dd34b82fc6d9518b73676430221595f72e6c1c105adff19e1f23e7468b8565"},
 		{"Binary File", args{"./test_data/swarm"}, false, "4bd4fb200ec385993708e2ff2163b3935178deb4920c85ff184a1f5d8bd9318d"},
 	}
 	for _, tt := range tests {

@@ -39,14 +39,12 @@ staticcheck:
 # runs the 
 .PHONY: run-swarm
 run-swarm:
-	docker run --name temporal_swarm -d -it -v ${PWD}/swarmtest/datadir:/data \
+	docker run --network host --name temporal_swarm -d -it -v ${PWD}/swarmtest/datadir:/data \
 					-v ${PWD}/swarmtest/passwordfile:/password \
-					-p 8500:8500 \
-					ethersphere/swarm \
+					ethersphere/swarm:0.5.7 \
 								--datadir /data \
 								--password /password \
-								--debug \
-								--verbosity 4
+								--debug
 
 .PHONY: stop-swarm
 stop-swarm:
